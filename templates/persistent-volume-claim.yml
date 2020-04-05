@@ -1,0 +1,15 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Values.appName | quote }}
+  labels:
+    app: {{ .Values.appName | quote }}
+spec:
+  accessModes:
+  - {{ .Values.nexusVolume.accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.nexusVolume.requests | default "20Gi" | quote }}
+  {{- if .Values.nexusVolume.storageClassName -}}
+  storageClassName: {{ .Values.nexusVolume.storageClassName | quote }}
+  {{- end -}}

@@ -1,0 +1,33 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: {{ .Values.appName | quote }}
+  labels:
+    app: {{ .Values.appName | quote }}
+spec:
+  nodeSelector: {}
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ .Values.appName }}:latest
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: {{ .Values.buildConfig.baseImage | quote }}
+      dockerfilePath: {{ .Values.buildConfig.dockerFilePath | default "Dockerfile" | quote }}
+  postCommit: {}
+  source:
+    type: Git
+    git:
+      uri: {{ .Values.buildConfig.repositoryUrl | quote }}
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+  runPolicy: Serial
+status:
+  lastVersion: 0

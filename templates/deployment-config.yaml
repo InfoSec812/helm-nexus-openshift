@@ -1,0 +1,69 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: {{ .Values.appName | quote }}
+  labels:
+    app: {{ .Values.appName | quote }}
+spec:
+  replicas: 1
+  selector:
+    name: {{ .Values.appName | quote }}
+  strategy:
+    type: {{ .Values.deploymentStrategy | default "Recreate" | quote }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.appName | quote }}
+    spec:
+      serviceAccount: {{ .Values.deploymentConfig.serviceAccount | default "nexus" | quote }}
+      serviceAccountName: {{ .Values.deploymentConfig.serviceAccount | default "nexus" | quote }}
+      containers:
+      - image: {{ .Values.appName }}:latest
+        imagePullPolicy: Always
+        name: {{ .Values.appName | quote }}
+        env:
+        - name: NEXUS_SECURITY_RANDOMPASSWORD
+          value: 'false'
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.service.port | default "8081" }}
+          initialDelaySeconds: 20
+        livenessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /
+            port: {{ .Values.service.port | default "8081" }}
+          initialDelaySeconds: 420
+          timeoutSeconds: 3
+        ports:
+        - containerPort: {{ .Values.service.port | default "8081" }}
+          protocol: {{ .Values.service.protocol | default "TCP" }}
+        resources:
+          limits:
+            memory: {{ .Values.deploymentConfig.memoryLimit | default "1Gi" | quote }}
+          requests:
+            memory: {{ .Values.deploymentConfig.memoryLimit | default "256Mi" | quote }}
+        terminationMessagePath: "/dev/termination-log"
+        volumeMounts:
+        - mountPath: "/nexus-data"
+          name: {{ .Values.appName | quote }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - persistentVolumeClaim:
+          claimName: {{ .Values.appName | quote }}
+        name: {{ .Values.appName | quote }}
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - {{ .Values.appName | quote }}
+      from:
+        kind: ImageStreamTag
+        name: {{ .Values.appName }}:latest
+    type: ImageChange

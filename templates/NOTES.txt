@@ -1,0 +1,7 @@
+1. Get the application URL by running these commands:
+   oc get route {{ .Values.appName }} --template='{{ "{{" }} .spec.host {{ "}}" }}'
+2. The password for the 'admin' account has been set to '{{ .Values.adminPassword }}' and stored as a Secret named '{{ .Values.appName }}'
+3. The following repositories have been provisioned {{ printf "\n" }}
+{{- range $repository := .Values.repositories -}}
+{{ printf "   - %s\n" $repository.name }}
+{{- end -}}

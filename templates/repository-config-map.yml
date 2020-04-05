@@ -1,0 +1,11 @@
+{{- range $repository := .Values.repositories -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ $repository.name | quote }}
+  labels:
+    app: {{ $.Values.appName | quote }}
+    nexus-type: repository
+data: {{ $repository.data | toJson }}
+---
+{{- end -}}

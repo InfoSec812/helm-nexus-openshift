@@ -1,0 +1,47 @@
+---
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+appName: nexus
+
+adminPassword: zuperZecretPassword
+
+serviceAccount:
+  role: edit
+
+deploymentConfig:
+  serviceAccount: nexus
+  memoryLimit: 2Gi
+
+buildConfig:
+  baseImage: sonatype/nexus3:latest
+  dockerFilePath: Dockerfile
+  repositoryUrl: https://github.com/sonatype-nexus-community/nexus-kubernetes-openshift.git
+
+service:
+  type: ClusterIP
+  port: 8081
+
+nexusVolume:
+  accessMode: ReadWriteOnce
+  requests: 20Gi
+
+repositories:
+- name: npm-proxy
+  data:
+    recipe: NpmProxy
+    remoteUrl: 'https://registry.npmjs.org/'
+    strictContentTypeValidation: 'true'
+    blobStore: default
+- name: npm-hosted
+  data:
+    recipe: NpmHosted
+    blobsStoreName: default
+    strictContentTypeValidation: 'true'
+    writePolicy: ALLOW
+- name: npm-group
+  data:
+    recipe: NpmGroup
+    blobsStoreName: default
+    members: npm-hosted,npm-proxy
